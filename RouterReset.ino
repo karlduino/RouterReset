@@ -48,6 +48,8 @@ char time_as_string[] = "12/20/1969 00:00:00";
 const int redLed = 3;
 const int greenLed = 5;
 const int yellowLed = 6;
+const int routerPin = 8;
+const int resetRouterTime = 30 * 1000; // wait 30 seconds
 
 // SD card
 const int chipSelect = 4;
@@ -58,6 +60,8 @@ void setup() {
   pinMode(redLed, OUTPUT);
   pinMode(greenLed, OUTPUT);
   pinMode(yellowLed, OUTPUT);
+  pinMode(routerPin, OUTPUT);
+  digitalWrite(routerPin, OUTPUT);
 
   flash_3leds(redLed, greenLed, yellowLed, 5, 100);
 
@@ -114,6 +118,8 @@ void loop() {
   else {
     digitalWrite(greenLed, LOW);
     digitalWrite(redLed, HIGH);
+
+    resetRouter();
   }
 
   // log change in connection status
@@ -196,4 +202,13 @@ void time_to_string(unsigned long epoch, char* time_as_string) {
     sprintf(time_as_string, "%02d/%02d/%4d %d:%02d:%02d",
           month(epoch), day(epoch), year(epoch),
           hour(epoch), minute(epoch), second(epoch));
+}
+
+void resetRouter(void) {
+  flash_3leds(redLed, greenLed, yellowLed, 5, 100);
+  digitalWrite(routerPin, LOW);
+  delay(resetRouterTime);
+  digitalWrite(routerPin, HIGH);
+  delay(resetRouterTime);
+  flash_3leds(redLed, greenLed, yellowLed, 5, 100);
 }
