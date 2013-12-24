@@ -43,6 +43,8 @@ const int NTP_PACKET_SIZE = 48;
 byte packetBuffer[NTP_PACKET_SIZE];
 WiFiUDP Udp;
 char time_as_string[] = "12/20/1969 00:00:00";
+unsigned long time_lastchange = 0;
+unsigned long time_now;
 
 // LED pins
 const int redLed = 3;
@@ -124,14 +126,19 @@ void loop() {
 
   // log change in connection status
   if(canConnect != canConnect_prev) {
-    time_to_string(now(), time_as_string);
+    time_now = now();
+    time_to_string(time_now, time_as_string);
     logfile.print(time_as_string);
     logfile.print(" - ");
-    if(canConnect)
-      logfile.println("connected.");
-    else
-      logfile.println("NOT CONNECTED!");
+    if(!canConnect) logfile.println("not");
+    logfile.println("connected");
     logfile.flush();
+
+    if(!time_lastchange) {
+      logfile.print("Seconds elapsed since last status change: ");
+      logfile.println(time_now - time_lastchange);
+    }
+    time_lastchange = time_now;
 
     canConnect_prev = canConnect;
   }
@@ -205,10 +212,8 @@ void time_to_string(unsigned long epoch, char* time_as_string) {
 }
 
 void resetRouter(void) {
-  flash_3leds(redLed, greenLed, yellowLed, 5, 100);
   digitalWrite(routerPin, LOW);
   delay(resetRouterTime);
   digitalWrite(routerPin, HIGH);
   delay(resetRouterTime);
-  flash_3leds(redLed, greenLed, yellowLed, 5, 100);
 }
