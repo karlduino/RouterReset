@@ -59,9 +59,7 @@ void setup() {
   pinMode(greenLed, OUTPUT);
   pinMode(yellowLed, OUTPUT);
 
-  //Initialize serial and wait for port to open:
   flash_3leds(redLed, greenLed, yellowLed, 5, 100);
-  flash_3leds(redLed, greenLed, yellowLed, 5, 400);
 
   // check for the presence of the shield:
   if (WiFi.status() == WL_NO_SHIELD) {
@@ -82,7 +80,17 @@ void setup() {
   delay(500);
   if( Udp.parsePacket() ) get_and_set_time();
 
-  open_file();
+  // setup SD card and log file
+  pinMode(10, OUTPUT);
+  while(!SD.begin(chipSelect)) flash_3leds(redLed, greenLed, yellowLed, 5, 400);
+  char filename[] = "wifi_log.txt";
+  logfile = SD.open(filename, FILE_WRITE);
+  time_to_string(now(), time_as_string);
+  logfile.print("\nStart up - ");
+  logfile.println(time_as_string);
+  logfile.flush();
+
+  flash_3leds(redLed, greenLed, yellowLed, 5, 100);
 }
 
 void loop() {
@@ -97,7 +105,6 @@ void loop() {
     digitalWrite(yellowLed, HIGH);
     connect_to_server();
     digitalWrite(yellowLed, LOW);
-
   }
 
   if(canConnect) {
@@ -108,12 +115,16 @@ void loop() {
     digitalWrite(greenLed, LOW);
     digitalWrite(redLed, HIGH);
   }
+
+  // log change in connection status
   if(canConnect != canConnect_prev) {
     time_to_string(now(), time_as_string);
     logfile.print(time_as_string);
     logfile.print(" - ");
-    if(canConnect) logfile.println("connected.");
-    else logfile.println("NOT CONNECTED!");
+    if(canConnect)
+      logfile.println("connected.");
+    else
+      logfile.println("NOT CONNECTED!");
     logfile.flush();
 
     canConnect_prev = canConnect;
@@ -151,7 +162,7 @@ void flash_3leds(int pin1, int pin2, int pin3, int number, int time)
   }
 }
 
-// send an NTP request to the time server at the given address
+// send an NTP request to the time server
 unsigned long sendNTPpacket(IPAddress& address)
 {
   memset(packetBuffer, 0, NTP_PACKET_SIZE);
@@ -185,13 +196,4 @@ void time_to_string(unsigned long epoch, char* time_as_string) {
     sprintf(time_as_string, "%02d/%02d/%4d %d:%02d:%02d",
           month(epoch), day(epoch), year(epoch),
           hour(epoch), minute(epoch), second(epoch));
-}
-
-void open_file(void) {
-  char filename[] = "log_****-11-11_12:59:59.csv";
-
-  sprintf(filename, "log_%4d-%02d-%02d_%02d:%02d:%02d.csv",
-          year(), month(), day(), hour(), minute(), second());
-
-  logfile = SD.open(filename, FILE_WRITE);
 }
