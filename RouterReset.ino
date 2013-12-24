@@ -21,7 +21,6 @@ char ssid[] = "SSID";
 char pass[] = "password";
 // end of private info
 
-int status = WL_IDLE_STATUS;
 char server[] = "www.google.com";
 //IPAddress server(74,125,225,113); // numeric IP for Google
 //IPAddress server(192, 168, 1, 155); // numeric IP that doesn't work
@@ -30,16 +29,15 @@ WiFiClient client;
 
 // checking connection
 unsigned long lastConnectionTime = 0;
-const unsigned long postingInterval = 10*1000; // wait 10 seconds
+#define postingInterval 10000
 boolean canConnect = false;
 boolean canConnect_prev = false;
 
 // setting time
-unsigned int localPort = 2390;      // local port to listen for UDP packets
-const int TIMEZONE = -6;            // central standard time
-// const int TIMEZONE = -5;         // central daylight time
+#define TIMEZONE -6           // central standard time
+//#define TIMEZONE -5         // central daylight time
 IPAddress timeServer(129, 6, 15, 28); // time.nist.gov NTP server
-const int NTP_PACKET_SIZE = 48;
+#define NTP_PACKET_SIZE 48
 byte packetBuffer[NTP_PACKET_SIZE];
 WiFiUDP Udp;
 char time_as_string[] = "12/20/1969 00:00:00";
@@ -47,14 +45,15 @@ unsigned long time_lastchange = 0;
 unsigned long time_now;
 
 // LED pins
-const int redLed = 3;
-const int greenLed = 5;
-const int yellowLed = 6;
-const int routerPin = 8;
-const int resetRouterTime = 30 * 1000; // wait 30 seconds
+#define redLed          3
+#define greenLed        5
+#define yellowLed       6
+#define routerPin1      8
+#define routerPin2      9
+#define resetRouterTime 30000
 
 // SD card
-const int chipSelect = 4;
+#define chipSelect 4
 File logfile;
 
 void setup() {
@@ -62,8 +61,10 @@ void setup() {
   pinMode(redLed, OUTPUT);
   pinMode(greenLed, OUTPUT);
   pinMode(yellowLed, OUTPUT);
-  pinMode(routerPin, OUTPUT);
-  digitalWrite(routerPin, OUTPUT);
+  pinMode(routerPin1, OUTPUT);
+  pinMode(routerPin2, OUTPUT);
+  digitalWrite(routerPin1, OUTPUT);
+  digitalWrite(routerPin2, OUTPUT);
 
   flash_3leds(redLed, greenLed, yellowLed, 5, 100);
 
@@ -75,12 +76,8 @@ void setup() {
   String fv = WiFi.firmwareVersion();
 
   // attempt to connect to Wifi network:
-  while (status != WL_CONNECTED) {
-    status = WiFi.begin(ssid, pass);
-
-    delay(1000);
-  }
-  Udp.begin(localPort);
+  while (WiFi.begin(ssid, pass) != WL_CONNECTED) delay(1000);
+  Udp.begin(2390);
 
   sendNTPpacket(timeServer); // send an NTP packet to a time server
   delay(500);
@@ -103,7 +100,6 @@ void loop() {
   // if there are incoming bytes available
   // from the server, read them and print them:
   while (client.available()) {
-    lastConnectionTime=millis();
     client.stop();
   }
 
@@ -130,13 +126,15 @@ void loop() {
     time_to_string(time_now, time_as_string);
     logfile.print(time_as_string);
     logfile.print(" - ");
-    if(!canConnect) logfile.println("not");
+    if(!canConnect) logfile.print("not ");
     logfile.println("connected");
     logfile.flush();
 
-    if(!time_lastchange) {
-      logfile.print("Seconds elapsed since last status change: ");
-      logfile.println(time_now - time_lastchange);
+    if(time_lastchange) {
+      logfile.print("Minutes elapsed: ");
+      logfile.print((time_now - time_lastchange) / 60);
+      logfile.print(":");
+      logfile.println((time_now - time_lastchange) % 60);
     }
     time_lastchange = time_now;
 
@@ -199,8 +197,7 @@ void get_and_set_time(void) {
     unsigned long lowWord = word(packetBuffer[42], packetBuffer[43]);
     unsigned long secsSince1900 = highWord << 16 | lowWord;
 
-    const unsigned long seventyYears = 2208988800UL;
-    unsigned long epoch = secsSince1900 - seventyYears;
+    unsigned long epoch = secsSince1900 - 2208988800UL;
     setTime(epoch);
 }
 
@@ -212,8 +209,10 @@ void time_to_string(unsigned long epoch, char* time_as_string) {
 }
 
 void resetRouter(void) {
-  digitalWrite(routerPin, LOW);
+  digitalWrite(routerPin1, LOW);
+  digitalWrite(routerPin2, LOW);
   delay(resetRouterTime);
-  digitalWrite(routerPin, HIGH);
+  digitalWrite(routerPin1, HIGH);
+  digitalWrite(routerPin2, HIGH);
   delay(resetRouterTime);
 }
