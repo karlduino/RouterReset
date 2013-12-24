@@ -1,4 +1,4 @@
-/*** coffeeShopWifi: test if internet is working; if not, reset router
+/*** RouterReset: test if internet is working; if not, reset router
 ***/
 
 #include <SPI.h>
