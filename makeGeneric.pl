@@ -4,7 +4,7 @@
 if(@ARGV > 0) {
     $origfile = $ARGV[0];
 } else {
-    $origfile = "coffeeShopWifi.ino";
+    $origfile = "RouterReset.ino";
 }
 $tmpfile = "tmp";
 $insertion = "generic.txt";
