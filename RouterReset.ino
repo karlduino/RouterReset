@@ -4,26 +4,22 @@
  *
  * Parts taken from Arduino wifi examples:
  *   WifiWebClient by dlf, srl, and Tom Igoe
- *   WifiUdpNtpClient by Michael Margolis and Tom Igoe
  *   SD/Datalogger by Tom Igoe
  *
  ***/
 
-#include <stdio.h>
 #include <SPI.h>
 #include <WiFi.h>
-#include <WiFiUdp.h>
-#include <Time.h>
 #include <SD.h>
 
-// private info [made generic here]
-char ssid[] = "SSID";
-char pass[] = "password";
+// private info
+char ssid[] = "Br0man";
+char pass[] = "4106620554";
 // end of private info
 
 char server[] = "www.google.com";
-//IPAddress server(74,125,225,113); // numeric IP for Google
-//IPAddress server(192, 168, 1, 155); // numeric IP that doesn't work
+//IPAddress server(74,125,225,113); // numeric IP for google
+//IPAddress server(192,168,1,155);  // numeric IP that doesn't work
 
 WiFiClient client;
 
@@ -33,24 +29,15 @@ unsigned long lastConnectionTime = 0;
 boolean canConnect = false;
 boolean canConnect_prev = false;
 
-// setting time
-#define TIMEZONE -6           // central standard time
-//#define TIMEZONE -5         // central daylight time
-IPAddress timeServer(129, 6, 15, 28); // time.nist.gov NTP server
-#define NTP_PACKET_SIZE 48
-byte packetBuffer[NTP_PACKET_SIZE];
-WiFiUDP Udp;
-char time_as_string[] = "12/20/1969 00:00:00";
-unsigned long time_lastchange = 0;
-unsigned long time_now;
-
 // LED pins
 #define redLed          3
 #define greenLed        5
 #define yellowLed       6
 #define routerPin1      8
 #define routerPin2      9
-#define resetRouterTime 30000
+#define resetRouter_nTones 30
+#define speakerPin      2
+#define errorFreq     220
 
 // SD card
 #define chipSelect 4
@@ -66,8 +53,6 @@ void setup() {
   digitalWrite(routerPin1, OUTPUT);
   digitalWrite(routerPin2, OUTPUT);
 
-  flash_3leds(redLed, greenLed, yellowLed, 5, 100);
-
   // check for the presence of the shield:
   if (WiFi.status() == WL_NO_SHIELD) {
     while (true); // stop
@@ -77,23 +62,16 @@ void setup() {
 
   // attempt to connect to Wifi network:
   while (WiFi.begin(ssid, pass) != WL_CONNECTED) delay(1000);
-  Udp.begin(2390);
-
-  sendNTPpacket(timeServer); // send an NTP packet to a time server
-  delay(500);
-  if( Udp.parsePacket() ) get_and_set_time();
 
   // setup SD card and log file
   pinMode(10, OUTPUT);
-  while(!SD.begin(chipSelect)) flash_3leds(redLed, greenLed, yellowLed, 5, 400);
+  while(!SD.begin(chipSelect)) error_tone(2, 250, 250);
   char filename[] = "wifi_log.txt";
   logfile = SD.open(filename, FILE_WRITE);
-  time_to_string(now(), time_as_string);
-  logfile.print("\nStart up - ");
-  logfile.println(time_as_string);
+  logfile.println("\nStart up -");
   logfile.flush();
 
-  flash_3leds(redLed, greenLed, yellowLed, 5, 100);
+  error_tone(4, 250, 250);
 }
 
 void loop() {
@@ -120,23 +98,10 @@ void loop() {
     resetRouter();
   }
 
-  // log change in connection status
   if(canConnect != canConnect_prev) {
-    time_now = now();
-    time_to_string(time_now, time_as_string);
-    logfile.print(time_as_string);
-    logfile.print(" - ");
     if(!canConnect) logfile.print("not ");
     logfile.println("connected");
     logfile.flush();
-
-    if(time_lastchange) {
-      logfile.print("Minutes elapsed: ");
-      logfile.print((time_now - time_lastchange) / 60);
-      logfile.print(":");
-      logfile.println((time_now - time_lastchange) % 60);
-    }
-    time_lastchange = time_now;
 
     canConnect_prev = canConnect;
   }
@@ -157,62 +122,21 @@ void connect_to_server(void) {
   lastConnectionTime=millis();
 }
 
-
-void flash_3leds(int pin1, int pin2, int pin3, int number, int time)
-{
-  int i, j;
-  int pins[] = {pin1, pin2, pin3};
-
-  for(i=0; i<number; i++) {
-    for(j=0; j<3; j++)
-      digitalWrite(pins[j], HIGH);
-    delay(time);
-    for(j=0; j<3; j++)
-      digitalWrite(pins[j], LOW);
-    delay(time);
-  }
-}
-
-// send an NTP request to the time server
-unsigned long sendNTPpacket(IPAddress& address)
-{
-  memset(packetBuffer, 0, NTP_PACKET_SIZE);
-  packetBuffer[0] = 0b11100011;
-  packetBuffer[1] = 0;
-  packetBuffer[2] = 6;
-  packetBuffer[3] = 0xEC;
-  packetBuffer[12]  = 49;
-  packetBuffer[13]  = 0x4E;
-  packetBuffer[14]  = 49;
-  packetBuffer[15]  = 52;
-  Udp.beginPacket(address, 123);
-  Udp.write(packetBuffer, NTP_PACKET_SIZE);
-  Udp.endPacket();
-}
-
-void get_and_set_time(void) {
-    Udp.read(packetBuffer, NTP_PACKET_SIZE); // read the packet into the buffer
-
-    unsigned long highWord = word(packetBuffer[40], packetBuffer[41]);
-    unsigned long lowWord = word(packetBuffer[42], packetBuffer[43]);
-    unsigned long secsSince1900 = highWord << 16 | lowWord;
-
-    unsigned long epoch = secsSince1900 - 2208988800UL;
-    setTime(epoch);
-}
-
-void time_to_string(unsigned long epoch, char* time_as_string) {
-    epoch = now() + TIMEZONE * 3600;
-    sprintf(time_as_string, "%02d/%02d/%4d %d:%02d:%02d",
-          month(epoch), day(epoch), year(epoch),
-          hour(epoch), minute(epoch), second(epoch));
-}
-
 void resetRouter(void) {
   digitalWrite(routerPin1, LOW);
   digitalWrite(routerPin2, LOW);
-  delay(resetRouterTime);
+  error_tone(resetRouter_nTones, 700, 300);
   digitalWrite(routerPin1, HIGH);
   digitalWrite(routerPin2, HIGH);
-  delay(resetRouterTime);
+  error_tone(resetRouter_nTones, 700, 300);
+}
+
+void error_tone(unsigned int n_times, unsigned int on_time, unsigned int off_time)
+{
+  for(int i=0; i<n_times; i++) {
+    tone(speakerPin, errorFreq);
+    delay(on_time);
+    noTone(speakerPin);
+    delay(off_time);
+  }
 }
