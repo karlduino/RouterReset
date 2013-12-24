@@ -27,6 +27,11 @@ const int yellowLed = 6;
 
 
 void setup() {
+  // Initial LEDs
+  pinMode(redLed, OUTPUT);
+  pinMode(greenLed, OUTPUT);
+  pinMode(yellowLed, OUTPUT);
+
   //Initialize serial and wait for port to open:
   Serial.begin(9600);
   flash_3leds(redLed, greenLed, yellowLed, 5, 100);
@@ -58,8 +63,6 @@ void setup() {
 }
 
 void loop() {
-  flash_3leds(redLed, greenLed, yellowLed, 5, 100);
-
   // if there are incoming bytes available
   // from the server, read them and print them:
   while (client.available()) {
@@ -70,10 +73,21 @@ void loop() {
   }
 
   if(!client.connected() && (millis() - lastConnectionTime > postingInterval)) {
+    digitalWrite(yellowLed, HIGH);
     connect_to_server();
+    digitalWrite(yellowLed, LOW);
   }
   
   lastConnected = client.connected();
+  if(canConnect) {
+    digitalWrite(greenLed, HIGH);
+    digitalWrite(redLed, LOW);
+  }
+  else {
+    digitalWrite(greenLed, LOW);
+    digitalWrite(redLed, HIGH);
+  }
+
 }
 
 
@@ -122,9 +136,6 @@ void flash_3leds(int pin1, int pin2, int pin3, int number, int time)
   int i, j;
   int pins[] = {pin1, pin2, pin3};
 
-  for(j=0; j<3; j++)
-    pinMode(pins[j], OUTPUT);
-
   for(i=0; i<number; i++) {
     for(j=0; j<3; j++)
       digitalWrite(pins[j], HIGH);
@@ -134,4 +145,3 @@ void flash_3leds(int pin1, int pin2, int pin3, int number, int time)
     delay(time);
   }
 }
-
