@@ -12,10 +12,9 @@
 #include <stdio.h>
 #include <SPI.h>
 #include <WiFi.h>
-#include <SPI.h>
 #include <WiFiUdp.h>
 #include <Time.h>
-
+#include <SD.h>
 
 // private info [made generic here]
 char ssid[] = "SSID";
@@ -31,9 +30,9 @@ WiFiClient client;
 
 // checking connection
 unsigned long lastConnectionTime = 0;
-boolean lastConnected = false;
 const unsigned long postingInterval = 10*1000; // wait 10 seconds
 boolean canConnect = false;
+boolean canConnect_prev = false;
 
 // setting time
 unsigned int localPort = 2390;      // local port to listen for UDP packets
@@ -45,9 +44,14 @@ byte packetBuffer[NTP_PACKET_SIZE];
 WiFiUDP Udp;
 char time_as_string[] = "12/20/1969 00:00:00";
 
+// LED pins
 const int redLed = 3;
 const int greenLed = 5;
 const int yellowLed = 6;
+
+// SD card
+const int chipSelect = 4;
+File logfile;
 
 void setup() {
   // Initial LEDs
@@ -56,49 +60,35 @@ void setup() {
   pinMode(yellowLed, OUTPUT);
 
   //Initialize serial and wait for port to open:
-  Serial.begin(9600);
   flash_3leds(redLed, greenLed, yellowLed, 5, 100);
-  while (!Serial) { ; } // wait for serial port to connect.
   flash_3leds(redLed, greenLed, yellowLed, 5, 400);
 
   // check for the presence of the shield:
   if (WiFi.status() == WL_NO_SHIELD) {
-    Serial.println("WiFi shield not present");
     while (true); // stop
   }
 
   String fv = WiFi.firmwareVersion();
-  if ( fv != "1.1.0" )
-    Serial.println("Please upgrade the firmware");
-  Serial.print("Wifi firmware: ");
-  Serial.println(fv);
 
   // attempt to connect to Wifi network:
   while (status != WL_CONNECTED) {
-    Serial.print("Attempting to connect to SSID: ");
-    Serial.println(ssid);
     status = WiFi.begin(ssid, pass);
 
     delay(1000);
   }
-  Serial.println("Connected to wifi");
-  printWifiStatus();
-
-  Serial.println("Connecting to time server.");
   Udp.begin(localPort);
 
-  Serial.println("Getting time.");
   sendNTPpacket(timeServer); // send an NTP packet to a time server
   delay(500);
-  if(  Udp.parsePacket() ) get_and_print_time();
+  if( Udp.parsePacket() ) get_and_set_time();
+
+  open_file();
 }
 
 void loop() {
   // if there are incoming bytes available
   // from the server, read them and print them:
   while (client.available()) {
-    Serial.println("Client avaliable.");
-    Serial.println("Disconnecting...");
     lastConnectionTime=millis();
     client.stop();
   }
@@ -108,12 +98,8 @@ void loop() {
     connect_to_server();
     digitalWrite(yellowLed, LOW);
 
-    Serial.print("Current time: ");
-    time_to_string(now(), time_as_string);
-    Serial.println(time_as_string);
   }
 
-  lastConnected = client.connected();
   if(canConnect) {
     digitalWrite(greenLed, HIGH);
     digitalWrite(redLed, LOW);
@@ -122,33 +108,21 @@ void loop() {
     digitalWrite(greenLed, LOW);
     digitalWrite(redLed, HIGH);
   }
+  if(canConnect != canConnect_prev) {
+    time_to_string(now(), time_as_string);
+    logfile.print(time_as_string);
+    logfile.print(" - ");
+    if(canConnect) logfile.println("connected.");
+    else logfile.println("NOT CONNECTED!");
+    logfile.flush();
 
-}
-
-void printWifiStatus() {
-  // print the SSID of the network you're attached to:
-  Serial.print("SSID: ");
-  Serial.println(WiFi.SSID());
-
-  // print your WiFi shield's IP address:
-  IPAddress ip = WiFi.localIP();
-  Serial.print("IP Address: ");
-  Serial.println(ip);
-
-  // print the received signal strength:
-  long rssi = WiFi.RSSI();
-  Serial.print("signal strength (RSSI):");
-  Serial.print(rssi);
-  Serial.println(" dBm");
+    canConnect_prev = canConnect;
+  }
 }
 
 void connect_to_server(void) {
-  Serial.println("\nStarting connection to server...");
-  // if you get a connection, report back via serial:
   if (client.connect(server, 80)) {
     canConnect = true;
-    Serial.println("connected to server");
-    // Make a HTTP request:
     client.println("GET /search?q=arduino HTTP/1.1");
     client.println("Host: www.google.com");
     client.println("Connection: close");
@@ -156,7 +130,6 @@ void connect_to_server(void) {
   }
   else {
     client.stop();
-    Serial.println("CONNECTION PROBLEM");
     canConnect = false;
   }
   lastConnectionTime=millis();
@@ -195,30 +168,30 @@ unsigned long sendNTPpacket(IPAddress& address)
   Udp.endPacket();
 }
 
-void get_and_print_time(void) {
-    Serial.println("packet received");
+void get_and_set_time(void) {
     Udp.read(packetBuffer, NTP_PACKET_SIZE); // read the packet into the buffer
 
     unsigned long highWord = word(packetBuffer[40], packetBuffer[41]);
     unsigned long lowWord = word(packetBuffer[42], packetBuffer[43]);
     unsigned long secsSince1900 = highWord << 16 | lowWord;
 
-    // now convert NTP time into everyday time:
     const unsigned long seventyYears = 2208988800UL;
-    // subtract seventy years:
     unsigned long epoch = secsSince1900 - seventyYears;
     setTime(epoch);
-
-    Serial.print("Current time: ");
-    time_to_string(epoch, time_as_string);
-    Serial.println(time_as_string);
 }
 
 void time_to_string(unsigned long epoch, char* time_as_string) {
-
-  epoch = epoch + TIMEZONE * 3600;
-
-  sprintf(time_as_string, "%02d/%02d/%4d %d:%02d:%02d",
+    epoch = now() + TIMEZONE * 3600;
+    sprintf(time_as_string, "%02d/%02d/%4d %d:%02d:%02d",
           month(epoch), day(epoch), year(epoch),
           hour(epoch), minute(epoch), second(epoch));
+}
+
+void open_file(void) {
+  char filename[] = "log_****-11-11_12:59:59.csv";
+
+  sprintf(filename, "log_%4d-%02d-%02d_%02d:%02d:%02d.csv",
+          year(), month(), day(), hour(), minute(), second());
+
+  logfile = SD.open(filename, FILE_WRITE);
 }
