@@ -17,7 +17,7 @@ again.
 Here's what this does:
 
 - Connect to wifi
-- Grab time from time.nist.gov and set Arduino clock
+- Grab time from `[time.nist.gov](http://tf.nist.gov/tf-cgi/servers.cgi)` and set Arduino clock
 - Test connection to [Google](www.google.com); light yellow LED during
   test
 - If connection, light the green LED
