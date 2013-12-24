@@ -10,9 +10,9 @@ char pass[] = "password";
 // end of private info
 
 int status = WL_IDLE_STATUS;
-//IPAddress server(74,125,225,113);  // numeric IP for Google (no DNS)
-char server[] = "www.google.com";    // name address for Google (using DNS)
-//IPAddress server(192, 168, 1, 155);
+char server[] = "www.google.com";
+//IPAddress server(74,125,225,113); // numeric IP for Google
+//IPAddress server(192, 168, 1, 155); // numeric IP that doesn't work
 
 WiFiClient client;
 
@@ -21,12 +21,17 @@ boolean lastConnected = false;
 const unsigned long postingInterval = 10*1000; // wait 10 seconds
 boolean canConnect = false;
 
+const int redLed = 3;
+const int greenLed = 5;
+const int yellowLed = 6;
+
+
 void setup() {
   //Initialize serial and wait for port to open:
   Serial.begin(9600);
-  flash_led(13, 5, 100);
+  flash_3leds(redLed, greenLed, yellowLed, 5, 100);
   while (!Serial) { ; } // wait for serial port to connect.
-  flash_led(13, 5, 400);
+  flash_3leds(redLed, greenLed, yellowLed, 5, 400);
 
   // check for the presence of the shield:
   if (WiFi.status() == WL_NO_SHIELD) {
@@ -53,7 +58,7 @@ void setup() {
 }
 
 void loop() {
-  flash_led(13, 5, 200);
+  flash_3leds(redLed, greenLed, yellowLed, 5, 100);
 
   // if there are incoming bytes available
   // from the server, read them and print them:
@@ -112,13 +117,20 @@ void connect_to_server(void) {
 }
 
 
-void flash_led(int pin, int number, int time)
+void flash_3leds(int pin1, int pin2, int pin3, int number, int time)
 {
-  pinMode(pin, OUTPUT);
-  for(int i=0; i<number; i++) {
-    digitalWrite(pin, HIGH);
+  int i, j;
+  int pins[] = {pin1, pin2, pin3};
+
+  for(j=0; j<3; j++)
+    pinMode(pins[j], OUTPUT);
+
+  for(i=0; i<number; i++) {
+    for(j=0; j<3; j++)
+      digitalWrite(pins[j], HIGH);
     delay(time);
-    digitalWrite(pin, LOW);
+    for(j=0; j<3; j++)
+      digitalWrite(pins[j], LOW);
     delay(time);
   }
 }
