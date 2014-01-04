@@ -1,8 +1,8 @@
 /* Testing an Arduino Yun: light up green or red when internet is on
  *
- * red LED (internet down): pin 3
+ * red LED (internet down): pin 6
  * green LED (internet up): pin 5
- * yellow LED (testing):    pin 6
+ * yellow LED (testing):    pin 3
  * blue LED (router on):    pin 8
  * power switch tail:       pin 9
  * switch:                  pin 12
@@ -12,9 +12,9 @@
 
 #include <Process.h>
 
-const int redLED     = 3;
+const int redLED     = 6;
 const int greenLED   = 5;
-const int yellowLED  = 6;
+const int yellowLED  = 3;
 const int routerPin1 = 8;
 const int routerPin2 = 9;
 const int resetRouterTimeSec = 30;
@@ -52,7 +52,7 @@ void loop() {
 
     digitalWrite(yellowLED, HIGH);
 
-    internetCheck.runShellCommand("/usr/bin/checkInternet.py");
+    internetCheck.runShellCommand("/usr/bin/pingGoogle.py");
 
     internetStatus = "";
     while(internetCheck.available() > 0) {
