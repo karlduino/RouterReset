@@ -39,10 +39,6 @@ boolean canConnect_prev = false;
 #define speakerPin      2
 #define errorFreq     220
 
-// SD card
-#define chipSelect 4
-File logfile;
-
 void setup() {
   // Initial LEDs
   pinMode(redLed, OUTPUT);
