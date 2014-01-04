@@ -15,8 +15,9 @@
 const int redLED     = 6;
 const int greenLED   = 5;
 const int yellowLED  = 3;
-const int routerPin1 = 8;
-const int routerPin2 = 9;
+const int routerPin = 8;
+const int routerLED = 9;
+const int routerLEDlevel = 100;
 const int resetRouterTimeSec = 30;
 const int secBetweenPings_Up = 5;
 const int secBetweenPings_Down = 1;
@@ -29,10 +30,10 @@ void setup() {
     pinMode(redLED, OUTPUT);
     pinMode(greenLED, OUTPUT);
     pinMode(yellowLED, OUTPUT);
-    pinMode(routerPin1, OUTPUT);
-    pinMode(routerPin2, OUTPUT);
-    digitalWrite(routerPin1, HIGH);
-    digitalWrite(routerPin2, HIGH);
+    pinMode(routerPin, OUTPUT);
+    pinMode(routerLED, OUTPUT);
+    digitalWrite(routerPin, HIGH);
+    analogWrite(routerLED, routerLEDlevel);
     pinMode(switchPin, INPUT);
     digitalWrite(switchPin, HIGH);
 
@@ -74,16 +75,16 @@ void loop() {
 void resetRouter() {
   if(digitalRead(switchPin) == HIGH) {
 
-    digitalWrite(routerPin1, LOW);
-    digitalWrite(routerPin2, LOW);
+    digitalWrite(routerPin, LOW);
+    digitalWrite(routerLED, LOW);
 
     for(int i=0; i<resetRouterTimeSec; i++) {
       if(digitalRead(switchPin) == LOW) break;
       delay(1000);
     }
 
-    digitalWrite(routerPin1, HIGH);
-    digitalWrite(routerPin2, HIGH);
+    digitalWrite(routerPin, HIGH);
+    analogWrite(routerLED, routerLEDlevel);
 
     delay(resetRouterTimeSec*1000);
   }
