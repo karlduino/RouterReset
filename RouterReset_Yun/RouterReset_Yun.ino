@@ -87,19 +87,19 @@ void resetRouter() {
 
 String pingGoogle(void) {
   Process internetCheck;
-  String status;
+  String result;
 
   digitalWrite(yellowLED, HIGH);
 
   internetCheck.runShellCommand("/usr/bin/pingGoogle.py");
 
-  status = "";
+  result = "";
   while(internetCheck.available() > 0) {
     char c = internetCheck.read();
-    if(c != '\n') status += c;
+    if(c != '\n') result += c;
   }
 
   digitalWrite(yellowLED, LOW);
 
-  return(status);
+  return(result);
 }
