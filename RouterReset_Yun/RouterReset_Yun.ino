@@ -3,7 +3,9 @@
  * red LED (internet down): pin 3
  * green LED (internet up): pin 5
  * yellow LED (testing):    pin 6
- * 
+ * blue LED (router on):    pin 8
+ * power switch tail:       pin 9
+ * switch:                  pin 12
  *
  * needs checkInternet.py installed in /usr/bin in Yun Linino
  */
@@ -15,8 +17,11 @@ const int greenLED   = 5;
 const int yellowLED  = 6;
 const int routerPin1 = 8;
 const int routerPin2 = 9;
-const int resetRouterTime = 30000;
-const int timeBetweenPings = 5000;
+const int resetRouterTimeSec = 30;
+const int secBetweenPings_Up = 5;
+const int secBetweenPings_Down = 1;
+const int startUpDelaySec = 5;
+const int switchPin = 12;
 
 String internetStatus;
 
@@ -28,13 +33,15 @@ void setup() {
     pinMode(routerPin2, OUTPUT);
     digitalWrite(routerPin1, HIGH);
     digitalWrite(routerPin2, HIGH);
+    pinMode(switchPin, INPUT);
+    digitalWrite(switchPin, HIGH);
 
     Bridge.begin();  // make contact with the linux processor
 
     digitalWrite(redLED, HIGH);
     digitalWrite(greenLED, HIGH);
     digitalWrite(yellowLED, HIGH);
-    delay(5000);
+    delay(startUpDelaySec*1000);
     digitalWrite(redLED, LOW);
     digitalWrite(greenLED, LOW);
     digitalWrite(yellowLED, LOW);
@@ -44,6 +51,7 @@ void loop() {
     Process internetCheck;
 
     digitalWrite(yellowLED, HIGH);
+
     internetCheck.runShellCommand("/usr/bin/checkInternet.py");
 
     internetStatus = "";
@@ -65,16 +73,24 @@ void loop() {
     
     digitalWrite(yellowLED, LOW);
 
-    if(internetStatus[0] == '0')
+    if(internetStatus[0] == '0') {
         resetRouter();
+        delay(secBetweenPings_Down*1000);
+    }
     else
-        delay(timeBetweenPings);
+        delay(secBetweenPings_Up*1000);
 }
 
-void resetRouter(void) {
-  digitalWrite(routerPin1, LOW);
-  digitalWrite(routerPin2, LOW);
-  delay(resetRouterTime);
-  digitalWrite(routerPin1, HIGH);
-  digitalWrite(routerPin2, HIGH);
+void resetRouter() {
+  if(digitalRead(switchPin) == HIGH) {
+    digitalWrite(routerPin1, LOW);
+    digitalWrite(routerPin2, LOW);
+    for(int i=0; i<resetRouterTimeSec; i++) {
+      if(digitalRead(switchPin) == LOW) break;
+      delay(1000);
+    }
+    digitalWrite(routerPin1, HIGH);
+    digitalWrite(routerPin2, HIGH);
+    delay(resetRouterTimeSec*1000);
+  }
 }
