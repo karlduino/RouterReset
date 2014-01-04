@@ -73,14 +73,18 @@ void loop() {
 
 void resetRouter() {
   if(digitalRead(switchPin) == HIGH) {
+
     digitalWrite(routerPin1, LOW);
     digitalWrite(routerPin2, LOW);
+
     for(int i=0; i<resetRouterTimeSec; i++) {
       if(digitalRead(switchPin) == LOW) break;
       delay(1000);
     }
+
     digitalWrite(routerPin1, HIGH);
     digitalWrite(routerPin2, HIGH);
+
     delay(resetRouterTimeSec*1000);
   }
 }
