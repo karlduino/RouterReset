@@ -14,10 +14,6 @@ const int greenLED = 5;
 const int yellowLED = 6;
 
 void setup() {
-    Serial.begin(9600);
-    while(!Serial);
-
-    Serial.println("Starting bridge...\n");
     pinMode(redLED, OUTPUT);
     pinMode(greenLED, OUTPUT);
     pinMode(yellowLED, OUTPUT);
@@ -45,14 +41,12 @@ void loop() {
 
         if(c == '1')
         {
-            Serial.println("Internet up");
             digitalWrite(redLED, LOW);
             digitalWrite(greenLED, HIGH);
             break;
         }
         else if(c == '0')
         {
-            Serial.println("Internet down");
             digitalWrite(redLED, HIGH);
             digitalWrite(greenLED, LOW);
             break;
