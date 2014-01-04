@@ -63,8 +63,8 @@ void setup() {
   pinMode(yellowLed, OUTPUT);
   pinMode(routerPin1, OUTPUT);
   pinMode(routerPin2, OUTPUT);
-  digitalWrite(routerPin1, OUTPUT);
-  digitalWrite(routerPin2, OUTPUT);
+  digitalWrite(routerPin1, HIGH);
+  digitalWrite(routerPin2, HIGH);
 
   flash_3leds(redLed, greenLed, yellowLed, 5, 100);
 

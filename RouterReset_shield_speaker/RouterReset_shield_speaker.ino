@@ -46,8 +46,8 @@ void setup() {
   pinMode(yellowLed, OUTPUT);
   pinMode(routerPin1, OUTPUT);
   pinMode(routerPin2, OUTPUT);
-  digitalWrite(routerPin1, OUTPUT);
-  digitalWrite(routerPin2, OUTPUT);
+  digitalWrite(routerPin1, HIGH);
+  digitalWrite(routerPin2, HIGH);
 
   // check for the presence of the shield:
   if (WiFi.status() == WL_NO_SHIELD) {
