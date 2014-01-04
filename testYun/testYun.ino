@@ -23,7 +23,7 @@ void setup() {
     digitalWrite(redLED, HIGH);
     digitalWrite(greenLED, HIGH);
     digitalWrite(yellowLED, HIGH);
-    delay(1000);
+    delay(5000);
     digitalWrite(redLED, LOW);
     digitalWrite(greenLED, LOW);
     digitalWrite(yellowLED, LOW);
