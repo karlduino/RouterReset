@@ -48,37 +48,27 @@ void setup() {
 }
 
 void loop() {
-    Process internetCheck;
+  internetStatus = pingGoogle();
 
-    digitalWrite(yellowLED, HIGH);
+  if(internetStatus[0] == '1') {
+    digitalWrite(redLED, LOW);
+    digitalWrite(greenLED, HIGH);
+  }
+  else if(internetStatus[0] == '0') {
+    digitalWrite(redLED, HIGH);
+    digitalWrite(greenLED, LOW);
 
-    internetCheck.runShellCommand("/usr/bin/pingGoogle.py");
-
-    internetStatus = "";
-    while(internetCheck.available() > 0) {
-      char c = internetCheck.read();
-      if(c != '\n') internetStatus += c;
-    }
-
-    if(internetStatus[0] == '1')
-    {
-        digitalWrite(redLED, LOW);
-        digitalWrite(greenLED, HIGH);
-    }
-    else if(internetStatus[0] == '0')
-    {
-        digitalWrite(redLED, HIGH);
-        digitalWrite(greenLED, LOW);
-    }
+    // wait 1 sec and check again
+    delay(secBetweenPings_Down*1000);
+    internetStatus = pingGoogle();
+  }
     
-    digitalWrite(yellowLED, LOW);
-
-    if(internetStatus[0] == '0') {
-        resetRouter();
-        delay(secBetweenPings_Down*1000);
-    }
-    else
-        delay(secBetweenPings_Up*1000);
+  if(internetStatus[0] == '0') {
+    resetRouter();
+    delay(secBetweenPings_Down*1000);
+  }
+  else
+    delay(secBetweenPings_Up*1000);
 }
 
 void resetRouter() {
@@ -93,4 +83,23 @@ void resetRouter() {
     digitalWrite(routerPin2, HIGH);
     delay(resetRouterTimeSec*1000);
   }
+}
+
+String pingGoogle(void) {
+  Process internetCheck;
+  String status;
+
+  digitalWrite(yellowLED, HIGH);
+
+  internetCheck.runShellCommand("/usr/bin/pingGoogle.py");
+
+  status = "";
+  while(internetCheck.available() > 0) {
+    char c = internetCheck.read();
+    if(c != '\n') status += c;
+  }
+
+  digitalWrite(yellowLED, LOW);
+
+  return(status);
 }
