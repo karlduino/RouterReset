@@ -1,4 +1,4 @@
-/* Testing an Arduino Yun: light up green or red when internet is on
+/* Router Reset for Arduino Yun
  *
  * red LED (internet down): pin 6
  * green LED (internet up): pin 5
@@ -7,7 +7,7 @@
  * power switch tail:       pin 9
  * switch:                  pin 12
  *
- * needs checkInternet.py installed in /usr/bin in Yun Linino
+ * needs ~/Python/pingGoogle.py on Yun Linino
  */
 
 #include <Process.h>
@@ -96,7 +96,7 @@ String pingGoogle(void) {
 
   digitalWrite(yellowLED, HIGH);
 
-  internetCheck.runShellCommand("/usr/bin/pingGoogle.py");
+  internetCheck.runShellCommand("~/Python/pingGoogle.py");
 
   result = "";
   while(internetCheck.available() > 0) {
