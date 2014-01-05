@@ -14,6 +14,12 @@ again.
 - Blue LED with 470 Ohm resistor to pin 9
 - slide switch attached to pin 12 (and ground)
 
+Requires python script
+[pingGoogle.py](https://github.com/karlduino/RouterReset/blob/master/Python/pingGoogle.py)
+to be placed in `~/Python/` on the
+[Linino](http://linino2013.wordpress.com/about/) side of the Arduino
+Yun.
+
 Here's what this does:
 
 - Connect to wifi
