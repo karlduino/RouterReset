@@ -17,7 +17,7 @@ again.
 Requires python script
 [pingGoogle.py](https://github.com/karlduino/RouterReset/blob/master/Python/pingGoogle.py)
 to be placed in `~/Python/` on the
-[Linino](http://linino2013.wordpress.com/about/) side of the Arduino
+[Linino](http://linino.org) side of the Arduino
 Yun.
 
 Here's what this does:
