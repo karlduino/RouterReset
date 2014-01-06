@@ -22,30 +22,24 @@ directory = '/mnt/sd/arduino/www/'
 # current time
 now = datetime.today()
 
-# command-line arguments: status (startup/on/off) and logdiff
-status = sys.argv[1] if len(sys.argv)>1 else ''
-logdiff = sys.argv[2] != '' if len(sys.argv)>2 else False
+# command-line argument: status (startup/on/off)
+status = sys.argv[1] if len(sys.argv)>1 else 'startup'
 
 logfile = os.path.join(directory, now.strftime('log_%Y-%m.txt'))
 lastlog_file = os.path.join(directory, '.lastlog.txt')
-lastlog_status = '' # default: no last log
+lastlog_status = status # default: no change
 
-if logdiff and os.path.exists(lastlog_file):
+if os.path.exists(lastlog_file):
     lastlog = open(lastlog_file).readlines()
     lastlog_time = datetime.strptime(lastlog[0].strip(), '%Y-%m-%d %H:%M:%S')
     lastlog_status = lastlog[1].strip()
-else: # no previous log time to diff from
-    logdiff = False
-
-if logdiff and (status == 'startup' or status == lastlog_status):
-    logdiff = False  # not really a change
 
 # add to log
 with open(logfile, 'at') as f:
     output = '%-10s %-8s %-7s' % (now.strftime('%Y-%m-%d'), 
                                  now.strftime('%H:%M:%S'), status)
-    if logdiff:
-        output += (' (after being %-3s ' % lastlog_status + 
+    if (status != 'startup' and status != lastlog_status):
+        output += (' (was %-3s ' % lastlog_status +
                    strfdelta(now - lastlog_time)) + ')'
 
     f.write(output + '\n')
