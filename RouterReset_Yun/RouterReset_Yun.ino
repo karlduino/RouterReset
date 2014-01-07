@@ -25,7 +25,7 @@ const int startUpDelaySec = 5;
 const int switchPin = 12;
 
 String internetStatus;
-char lastStatus = ' '; // 0 = off, 1 = on
+char lastStatus = ' '; // 0 = down, 1 = up
 
 void setup() {
     pinMode(redLED, OUTPUT);
@@ -108,8 +108,8 @@ String pingGoogle(void) {
   }
 
   if(result[0] != lastStatus) {
-    if(result[0] == '1') logEvent("on");
-    else logEvent("off");
+    if(result[0] == '1') logEvent("up");
+    else logEvent("down");
     lastStatus = result[0];
   }
 

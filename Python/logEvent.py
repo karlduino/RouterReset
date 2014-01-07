@@ -10,7 +10,7 @@ import updateWeb
 def logEvent (directory):
     now = datetime.today()
 
-    # command-line argument: status (startup/on/off)
+    # command-line argument: status (startup/up/down)
     status = sys.argv[1] if len(sys.argv)>1 else 'startup'
 
     logfile = os.path.join(directory, now.strftime('log_%Y-%m.txt'))
@@ -30,7 +30,7 @@ def logEvent (directory):
         output = '%-10s %-8s %-7s' % (now.strftime('%Y-%m-%d'),
                                     now.strftime('%H:%M:%S'), status)
         if (status != 'startup' and status != lastlog_status):
-            output += (' (was %-3s ' % lastlog_status +
+            output += (' (was %-4s ' % lastlog_status +
                        strfdelta(now - lastlog_time)) + ')'
         f.write(output + '\n')
 
