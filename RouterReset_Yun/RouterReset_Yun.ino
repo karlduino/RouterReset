@@ -11,7 +11,7 @@
  */
 
 #include <Process.h>
-#define DEBUG
+#define NO_DEBUG
 
 const int redLED     = 6;
 const int greenLED   = 5;
