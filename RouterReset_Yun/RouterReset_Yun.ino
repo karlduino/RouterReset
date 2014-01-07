@@ -11,6 +11,7 @@
  */
 
 #include <Process.h>
+#define DEBUG
 
 const int redLED     = 6;
 const int greenLED   = 5;
@@ -18,12 +19,12 @@ const int yellowLED  = 3;
 const int routerPin  = 8;
 const int routerLED  = 9;
 const int switchPin  = 12;
-const int routerLEDlevel = 100;     // intensity of blue LED (0-255, 255=HIGH)
-const int resetRouter_offSec  = 30; // wait time between turning router off and turning it on again
-const int resetRouter_onSec   = 60; // wait time between turning router back on and resuming check of internet
-const int secBetweenPings_Up  = 10; // wait time between pings when response has been good
-const int secBetweenPings_Down = 5; // wait time between pings when response has been bad
-const int startUpDelaySec      = 8; // wait time after startup before beginning to ping
+const int routerLEDlevel = 100;      // intensity of blue LED (0-255, 255=HIGH)
+const long resetRouter_offSec  = 30; // wait time between turning router off and turning it on again
+const long resetRouter_onSec   = 60; // wait time between turning router back on and resuming check of internet
+const long secBetweenPings_Up  = 10; // wait time between pings when response has been good
+const long secBetweenPings_Down = 5; // wait time between pings when response has been bad
+const int startUpDelaySec       = 8; // wait time after startup before beginning to ping
 
 String internetStatus;
 char lastStatus = ' '; // 0 = down, 1 = up
@@ -43,12 +44,29 @@ void setup() {
   digitalWrite(redLED, HIGH);
   digitalWrite(greenLED, HIGH);
   digitalWrite(yellowLED, HIGH);
+
+  #ifdef DEBUG
+  Serial.begin(9600);
+  while(!Serial);
+  Serial.println("Starting up");
+  #endif
+
   delay(1000);
   digitalWrite(redLED, LOW);
   digitalWrite(greenLED, LOW);
   digitalWrite(yellowLED, LOW);
 
+  #ifdef DEBUG
+  Serial.begin(9600);
+  while(!Serial) { }
+  Serial.println("Starting bridge");
+  #endif
+
   Bridge.begin();  // make contact with the linux processor
+
+  #ifdef DEBUG
+  Serial.println("Bridge started.");
+  #endif
 
   digitalWrite(redLED, HIGH);
   digitalWrite(greenLED, HIGH);
@@ -88,6 +106,10 @@ void loop() {
 void resetRouter() {
   if(digitalRead(switchPin) == HIGH) {
 
+    #ifdef DEBUG
+    Serial.println("Shutting off router.");
+    #endif
+
     digitalWrite(routerPin, LOW);
     digitalWrite(routerLED, LOW);
 
@@ -99,7 +121,15 @@ void resetRouter() {
     digitalWrite(routerPin, HIGH);
     analogWrite(routerLED, routerLEDlevel);
 
+    #ifdef DEBUG
+    Serial.println("Router back on; waiting.");
+    #endif
+
     delay(resetRouter_onSec*1000);
+
+    #ifdef DEBUG
+    Serial.println("Done waiting.");
+    #endif
   }
 }
 
@@ -109,6 +139,10 @@ String pingGoogle(void) {
 
   digitalWrite(yellowLED, HIGH);
 
+  #ifdef DEBUG
+  Serial.println("Pinging google.");
+  #endif
+
   p.runShellCommand("/root/Python/pingGoogle.py");
 
   result = "";
@@ -116,6 +150,17 @@ String pingGoogle(void) {
     char c = p.read();
     if(c != '\n') result += c;
   }
+
+  #ifdef DEBUG
+  if(result[0] == '1')
+    Serial.println("    Up.");
+  else if(result[0] == '0')
+    Serial.println("    Down.");
+  else {
+    Serial.print("    Unexpected result: ");
+    Serial.println(result);
+  }
+  #endif
 
   if(result[0] != lastStatus) {
     if(result[0] == '1') logEvent("up");
@@ -130,6 +175,11 @@ String pingGoogle(void) {
 
 void logEvent(String status) {
   Process p;
+
+  #ifdef DEBUG
+  Serial.print("log: ");
+  Serial.println(status);
+  #endif
 
   p.begin("/root/Python/logEvent.py");
   p.addParameter(status);
