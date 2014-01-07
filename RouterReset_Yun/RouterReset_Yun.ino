@@ -15,14 +15,15 @@
 const int redLED     = 6;
 const int greenLED   = 5;
 const int yellowLED  = 3;
-const int routerPin = 8;
-const int routerLED = 9;
-const int routerLEDlevel = 100;
-const int resetRouterTimeSec = 30;
-const int secBetweenPings_Up = 5;
-const int secBetweenPings_Down = 1;
-const int startUpDelaySec = 8;
-const int switchPin = 12;
+const int routerPin  = 8;
+const int routerLED  = 9;
+const int switchPin  = 12;
+const int routerLEDlevel = 100;     // intensity of blue LED (0-255, 255=HIGH)
+const int resetRouter_offSec  = 30; // wait time between turning router off and turning it on again
+const int resetRouter_onSec   = 60; // wait time between turning router back on and resuming check of internet
+const int secBetweenPings_Up  = 10; // wait time between pings when response has been good
+const int secBetweenPings_Down = 5; // wait time between pings when response has been bad
+const int startUpDelaySec      = 8; // wait time after startup before beginning to ping
 
 String internetStatus;
 char lastStatus = ' '; // 0 = down, 1 = up
@@ -89,7 +90,7 @@ void resetRouter() {
     digitalWrite(routerPin, LOW);
     digitalWrite(routerLED, LOW);
 
-    for(int i=0; i<resetRouterTimeSec; i++) {
+    for(int i=0; i<resetRouter_offSec; i++) {
       if(digitalRead(switchPin) == LOW) break;
       delay(1000);
     }
@@ -97,7 +98,7 @@ void resetRouter() {
     digitalWrite(routerPin, HIGH);
     analogWrite(routerLED, routerLEDlevel);
 
-    delay(resetRouterTimeSec*1000);
+    delay(resetRouter_onSec*1000);
   }
 }
 
