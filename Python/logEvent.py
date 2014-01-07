@@ -4,6 +4,7 @@
 from datetime import datetime, timedelta
 import os
 import sys
+import updateWeb
 
 # function to log time/event
 def logEvent (directory):
@@ -43,7 +44,7 @@ def logEvent (directory):
 
     # if it was a new log file, re-build web page:
     if not logfile_not_new:
-        print 'rebuild web'
+        updateWeb.updateWeb(directory)
 
 
 # function for formatting change in time
@@ -54,4 +55,4 @@ def strfdelta(tdelta):
     return("%d:%02d:%02d" % (hours, minutes, seconds))
 
 if __name__ == '__main__':
-    logEvent('test')
+    logEvent('/mnt/sd/arduino/www')
