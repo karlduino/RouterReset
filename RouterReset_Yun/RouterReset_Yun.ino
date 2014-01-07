@@ -88,6 +88,8 @@ void resetRouter() {
 
     digitalWrite(routerPin, HIGH);
     analogWrite(routerLED, routerLEDlevel);
+
+    delay(resetRouterTimeSec*1000);
   }
 }
 
