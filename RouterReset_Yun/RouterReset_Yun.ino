@@ -29,35 +29,36 @@ String internetStatus;
 char lastStatus = ' '; // 0 = down, 1 = up
 
 void setup() {
-    pinMode(redLED, OUTPUT);
-    pinMode(greenLED, OUTPUT);
-    pinMode(yellowLED, OUTPUT);
-    pinMode(routerPin, OUTPUT);
-    pinMode(routerLED, OUTPUT);
-    digitalWrite(routerPin, HIGH);
-    analogWrite(routerLED, routerLEDlevel);
-    pinMode(switchPin, INPUT);
-    digitalWrite(switchPin, HIGH);
 
-    digitalWrite(redLED, HIGH);
-    digitalWrite(greenLED, HIGH);
-    digitalWrite(yellowLED, HIGH);
-    delay(1000);
-    digitalWrite(redLED, LOW);
-    digitalWrite(greenLED, LOW);
-    digitalWrite(yellowLED, LOW);
+  pinMode(redLED, OUTPUT);
+  pinMode(greenLED, OUTPUT);
+  pinMode(yellowLED, OUTPUT);
+  pinMode(routerPin, OUTPUT);
+  pinMode(routerLED, OUTPUT);
+  digitalWrite(routerPin, HIGH);
+  analogWrite(routerLED, routerLEDlevel);
+  pinMode(switchPin, INPUT);
+  digitalWrite(switchPin, HIGH);
 
-    Bridge.begin();  // make contact with the linux processor
+  digitalWrite(redLED, HIGH);
+  digitalWrite(greenLED, HIGH);
+  digitalWrite(yellowLED, HIGH);
+  delay(1000);
+  digitalWrite(redLED, LOW);
+  digitalWrite(greenLED, LOW);
+  digitalWrite(yellowLED, LOW);
 
-    digitalWrite(redLED, HIGH);
-    digitalWrite(greenLED, HIGH);
-    digitalWrite(yellowLED, HIGH);
-    delay(startUpDelaySec*1000);
-    digitalWrite(redLED, LOW);
-    digitalWrite(greenLED, LOW);
-    digitalWrite(yellowLED, LOW);
+  Bridge.begin();  // make contact with the linux processor
 
-    logEvent("startup");
+  digitalWrite(redLED, HIGH);
+  digitalWrite(greenLED, HIGH);
+  digitalWrite(yellowLED, HIGH);
+  delay(startUpDelaySec*1000);
+  digitalWrite(redLED, LOW);
+  digitalWrite(greenLED, LOW);
+  digitalWrite(yellowLED, LOW);
+
+  logEvent("startup");
 }
 
 void loop() {
@@ -75,7 +76,7 @@ void loop() {
     delay(secBetweenPings_Down*1000);
     internetStatus = pingGoogle();
   }
-    
+
   if(internetStatus[0] == '0') {
     resetRouter();
     delay(secBetweenPings_Down*1000);
