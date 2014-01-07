@@ -25,6 +25,7 @@ const int startUpDelaySec = 5;
 const int switchPin = 12;
 
 String internetStatus;
+char lastStatus = ' '; // 0 = off, 1 = on
 
 void setup() {
     pinMode(redLED, OUTPUT);
@@ -46,6 +47,8 @@ void setup() {
     digitalWrite(redLED, LOW);
     digitalWrite(greenLED, LOW);
     digitalWrite(yellowLED, LOW);
+
+    logEvent("startup");
 }
 
 void loop() {
@@ -96,7 +99,7 @@ String pingGoogle(void) {
 
   digitalWrite(yellowLED, HIGH);
 
-  internetCheck.runShellCommand("~/Python/pingGoogle.py");
+  internetCheck.runShellCommand("/root/Python/pingGoogle.py");
 
   result = "";
   while(internetCheck.available() > 0) {
@@ -104,7 +107,21 @@ String pingGoogle(void) {
     if(c != '\n') result += c;
   }
 
+  if(result[0] != lastStatus) {
+    if(result[0] == '1') logEvent("on");
+    else logEvent("off");
+    lastStatus = result[0];
+  }
+
   digitalWrite(yellowLED, LOW);
 
   return(result);
+}
+
+void logEvent(String status) {
+  Process p;
+
+  p.begin("/root/Python/logEvent.py");
+  p.addParameter(status);
+  p.run();
 }
