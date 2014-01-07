@@ -21,7 +21,7 @@ const int routerLEDlevel = 100;
 const int resetRouterTimeSec = 30;
 const int secBetweenPings_Up = 5;
 const int secBetweenPings_Down = 1;
-const int startUpDelaySec = 5;
+const int startUpDelaySec = 8;
 const int switchPin = 12;
 
 String internetStatus;
@@ -37,6 +37,14 @@ void setup() {
     analogWrite(routerLED, routerLEDlevel);
     pinMode(switchPin, INPUT);
     digitalWrite(switchPin, HIGH);
+
+    digitalWrite(redLED, HIGH);
+    digitalWrite(greenLED, HIGH);
+    digitalWrite(yellowLED, HIGH);
+    delay(1000);
+    digitalWrite(redLED, LOW);
+    digitalWrite(greenLED, LOW);
+    digitalWrite(yellowLED, LOW);
 
     Bridge.begin();  // make contact with the linux processor
 
