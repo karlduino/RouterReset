@@ -94,16 +94,16 @@ void resetRouter() {
 }
 
 String pingGoogle(void) {
-  Process internetCheck;
+  Process p;
   String result;
 
   digitalWrite(yellowLED, HIGH);
 
-  internetCheck.runShellCommand("/root/Python/pingGoogle.py");
+  p.runShellCommand("/root/Python/pingGoogle.py");
 
   result = "";
-  while(internetCheck.available() > 0) {
-    char c = internetCheck.read();
+  while(p.available() > 0) {
+    char c = p.read();
     if(c != '\n') result += c;
   }
 
