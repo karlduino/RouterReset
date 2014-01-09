@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 # check internet access by pinging google
+
+# taken from a stackoverflow answer by unutbu:
+#   http://stackoverflow.com/questions/3764291/checking-network-connection
+
 import urllib2
 
 def internet_on():
