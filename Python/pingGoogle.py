@@ -4,7 +4,7 @@ import urllib2
 
 def internet_on():
     try:
-        response = urllib2.urlopen('http://www.google.com', timeout=1)
+        response = urllib2.urlopen('http://www.google.com', timeout=5)
         return 1
     except urllib2.URLError as err: pass
     return 0
