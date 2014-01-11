@@ -76,6 +76,8 @@ void setup() {
   digitalWrite(greenLED, LOW);
   digitalWrite(yellowLED, LOW);
 
+  setClock();
+
   logEvent("startup");
 }
 
@@ -184,4 +186,25 @@ void logEvent(String status) {
   p.begin("/root/Python/logEvent.py");
   p.addParameter(status);
   p.run();
+}
+
+void setClock(void) {
+  Process p;
+  String result;
+
+  #ifdef DEBUG
+  Serial.println("Setting clock.");
+  #endif
+
+  p.runShellCommand("ntpd -qn -p 0.pool.ntp.org");
+
+  #ifdef DEBUG
+  result = "";
+  while(p.available() > 0) {
+    char c = p.read();
+    result += c;
+  }
+
+  Serial.println(result);
+  #endif
 }
