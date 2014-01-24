@@ -29,6 +29,9 @@ def logEvent (directory):
     with open(logfile, 'at') as f:
         output = '%-10s %-8s %-7s' % (now.strftime('%Y-%m-%d'),
                                     now.strftime('%H:%M:%S'), status)
+        if status == "startup":
+            output += '; connected to ' + getSSID()
+
         if (status != 'startup' and status != lastlog_status):
             output += (' (was %-4s ' % lastlog_status +
                        strfdelta(now - lastlog_time)) + ')'
@@ -53,6 +56,10 @@ def strfdelta(tdelta):
     hours += tdelta.days * 24
     minutes, seconds = divmod(rem, 60)
     return("%d:%02d:%02d" % (hours, minutes, seconds))
+
+# function to get SSID
+def getSSID():
+    return os.popen('iwconfig wlan0 | grep ESSID').readline().strip().split('"')[-2]
 
 if __name__ == '__main__':
     logEvent('/mnt/sd/arduino/www')
